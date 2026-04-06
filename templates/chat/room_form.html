@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Room — Django Real-Time Chat Application{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-card">
+        <div class="form-card-header">
+            <a href="{% url 'home' %}" class="back-link">← Back</a>
+            <h2>{{ action }} Room</h2>
+            <p>{% if action == 'Create' %}Start a new discussion space{% else %}Update room details{% endif %}</p>
+        </div>
+
+        <form method="POST" class="styled-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Room Name <span class="required">*</span></label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <span class="field-error">{{ form.name.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="topic">Topic</label>
+                <input type="text" name="topic" id="topic" class="form-input" 
+                       placeholder="e.g. Python, Gaming, Music..."
+                       value="{{ room.topic.name|default:'' }}"
+                       list="topics-list" autocomplete="off">
+                <datalist id="topics-list">
+                    {% for topic in topics %}
+                    <option value="{{ topic.name }}">
+                    {% endfor %}
+                </datalist>
+                <small class="field-hint">Choose existing or type a new topic</small>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <span class="field-error">{{ form.description.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group form-group-inline">
+                {{ form.is_private }}
+                <label for="{{ form.is_private.id_for_label }}">Private Room</label>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'home' %}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">{{ action }} Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

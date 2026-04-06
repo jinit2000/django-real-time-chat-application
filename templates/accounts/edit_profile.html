@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile — Django Real-Time Chat Application{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-card">
+        <div class="form-card-header">
+            <a href="{% url 'profile' request.user.pk %}" class="back-link">← Back to profile</a>
+            <h2>Edit Profile</h2>
+        </div>
+        <form method="POST" class="styled-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" name="first_name" class="form-input" value="{{ request.user.first_name }}" placeholder="First name">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" name="last_name" class="form-input" value="{{ request.user.last_name }}" placeholder="Last name">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" class="form-input" value="{{ request.user.email }}" placeholder="Email address">
+            </div>
+            <div class="form-group">
+                <label>Bio</label>
+                {{ form.bio }}
+            </div>
+            <div class="form-group">
+                <label>Avatar URL</label>
+                {{ form.avatar_url }}
+                <small class="field-hint">Link to an image for your avatar</small>
+            </div>
+            <div class="form-actions">
+                <a href="{% url 'profile' request.user.pk %}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

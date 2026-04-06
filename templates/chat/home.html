@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Django Real-Time Chat Application{% endblock %}
+
+{% block content %}
+<div class="home-layout">
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-header">
+                <h3>Topics</h3>
+                <a href="{% url 'topics' %}" class="sidebar-link-all">Browse all</a>
+            </div>
+            <ul class="topic-list">
+                <li>
+                    <a href="{% url 'home' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}"
+                       class="topic-item {% if not topic_filter %}active{% endif %}">
+                        <span><span class="topic-hash">#</span> All rooms</span>
+                        <span class="topic-count">{{ room_count }}</span>
+                    </a>
+                </li>
+                {% for topic in topics %}
+                <li>
+                    <a href="?topic={{ topic.name }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                       class="topic-item {% if topic_filter == topic.name %}active{% endif %}">
+                        <span><span class="topic-hash">#</span> {{ topic.name|lower }}</span>
+                        <span class="topic-count">{{ topic.count }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+    <section class="rooms-section">
+        <div class="rooms-header">
+            <div class="rooms-title">
+                <h2>{% if q %}Results for "{{ q }}"{% elif topic_filter %}{{ topic_filter }}{% else %}All Rooms{% endif %}</h2>
+                <span class="rooms-count">{{ room_count }} room{{ room_count|pluralize }}</span>
+            </div>
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'create-room' %}" class="btn btn-primary">Create Room</a>
+            {% endif %}
+        </div>
+
+        {% if rooms %}
+        <div class="rooms-grid">
+            {% for room in rooms %}
+            <div class="room-card">
+                <div class="room-card-header">
+                    {% if room.topic %}
+                    <a href="?topic={{ room.topic.name }}" class="room-topic">{{ room.topic.name|lower }}</a>
+                    {% else %}
+                    <span class="room-topic">general</span>
+                    {% endif %}
+                    <span class="room-privacy">{% if room.is_private %}Private{% else %}Open{% endif %}</span>
+                </div>
+                <a href="{% url 'room' room.pk %}" class="room-name">{{ room.name }}</a>
+                {% if room.description %}
+                <p class="room-desc">{{ room.description|truncatechars:100 }}</p>
+                {% endif %}
+                <div class="room-card-footer">
+                    <a href="{% url 'profile' room.host.pk %}" class="room-host">
+                        <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ room.host.username }}&backgroundColor=dbe4ff" alt="{{ room.host.username }}">
+                        <span>{{ room.host.username }}</span>
+                    </a>
+                    <div class="room-meta">
+                        <span>{{ room.message_count }} messages</span>
+                        <span>{{ room.participant_count }} people</span>
+                    </div>
+                </div>
+                <div class="room-time">{{ room.created_at|timesince }} ago</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No rooms found</h3>
+            <p>{% if q %}Nothing matched "{{ q }}". Try a different search.{% else %}Create the first room to get started.{% endif %}</p>
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'create-room' %}" class="btn btn-primary">Create Room</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+
+    <aside class="activity-sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-header">
+                <h3>Recent Activity</h3>
+            </div>
+            <ul class="activity-list">
+                {% for msg in recent_messages %}
+                <li class="activity-item">
+                    <a href="{% url 'profile' msg.user.pk %}" class="activity-avatar">
+                        <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ msg.user.username }}&backgroundColor=dbe4ff" alt="{{ msg.user.username }}">
+                    </a>
+                    <div class="activity-body">
+                        <div class="activity-meta">
+                            <a href="{% url 'profile' msg.user.pk %}" class="activity-user">{{ msg.user.username }}</a>
+                            <span class="activity-sep">in</span>
+                            <a href="{% url 'room' msg.room.pk %}" class="activity-room">{{ msg.room.name|truncatechars:20 }}</a>
+                        </div>
+                        <p class="activity-text">{{ msg.body|truncatechars:60 }}</p>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="activity-empty">No recent messages</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ room.name }} | Django Real-Time Chat Application{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/room.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="room-layout">
+    <aside class="room-sidebar">
+        <div class="room-info-card">
+            <div class="room-info-header">
+                {% if room.topic %}<span class="room-topic-badge">{{ room.topic.name|lower }}</span>{% endif %}
+                <h2 class="room-info-title">{{ room.name }}</h2>
+                {% if room.description %}<p class="room-info-desc">{{ room.description }}</p>{% endif %}
+            </div>
+            <div class="room-info-meta">
+                <div class="hosted-by">
+                    <span class="meta-label">Hosted by</span>
+                    <a href="{% url 'profile' room.host.pk %}" class="host-link">
+                        <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ room.host.username }}&backgroundColor=dbe4ff" alt="{{ room.host.username }}">
+                        {{ room.host.username }}
+                    </a>
+                </div>
+                {% if request.user == room.host %}
+                <div class="room-actions">
+                    <a href="{% url 'edit-room' room.pk %}" class="btn btn-sm btn-ghost">Edit</a>
+                    <a href="{% url 'delete-room' room.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="participants-card">
+            <h3 class="participants-title">Participants <span class="count-badge">{{ participants.count }}</span></h3>
+            <ul class="participants-list" id="participants-list">
+                {% for p in participants %}
+                <li class="participant-item" data-user-id="{{ p.pk }}">
+                    <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ p.username }}&backgroundColor=dbe4ff" alt="{{ p.username }}">
+                    <a href="{% url 'profile' p.pk %}">{{ p.username }}</a>
+                    {% if p == room.host %}<span class="host-badge">host</span>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <a href="{% url 'home' %}" class="back-btn">Back</a>
+                <h2>{{ room.name }}</h2>
+            </div>
+            <div class="connection-status" id="connection-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting</span>
+            </div>
+        </div>
+
+        <div class="messages-area" id="messages-area">
+            <div class="messages-start">
+                <p>This is the beginning of <strong>{{ room.name }}</strong></p>
+            </div>
+
+            {% for msg in chat_messages %}
+            <div class="message {% if msg.user == request.user %}message-self{% endif %}" data-message-id="{{ msg.pk }}">
+                <a href="{% url 'profile' msg.user.pk %}" class="message-avatar">
+                    <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ msg.user.username }}&backgroundColor=dbe4ff" alt="{{ msg.user.username }}">
+                </a>
+                <div class="message-content">
+                    <div class="message-header">
+                        <a href="{% url 'profile' msg.user.pk %}" class="message-username">{{ msg.user.username }}</a>
+                        <span class="message-time" title="{{ msg.created_at|date:'N j, Y g:i A' }}">{{ msg.created_at|date:"H:i" }}</span>
+                        {% if msg.user == request.user or request.user == room.host %}
+                        <button class="delete-msg-btn" data-message-id="{{ msg.pk }}" title="Delete message">×</button>
+                        {% endif %}
+                    </div>
+                    <p class="message-body">{{ msg.body }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="chat-input-area">
+            {% if request.user.is_authenticated %}
+            <div class="typing-indicator" id="typing-indicator"></div>
+            <form class="chat-form" id="chat-form">
+                {% csrf_token %}
+                <div class="input-wrapper">
+                    <textarea
+                        id="message-input"
+                        placeholder="Write a message in {{ room.name }}"
+                        rows="1"
+                        maxlength="2000"
+                        autocomplete="off"
+                    ></textarea>
+                    <button type="submit" class="send-btn" id="send-btn">Send</button>
+                </div>
+            </form>
+            {% else %}
+            <div class="login-prompt">
+                <a href="{% url 'login' %}?next={{ request.path }}">Log in to join the chat</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ROOM_ID = {{ room.pk }};
+    const CURRENT_USER_ID = {{ request.user.pk }};
+    const IS_HOST = {{ is_host|yesno:"true,false" }};
+    const CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+<script src="{% static 'js/room.js' %}"></script>
+{% endblock %}

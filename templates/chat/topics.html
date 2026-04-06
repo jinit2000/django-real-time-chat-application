@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Topics — Django Real-Time Chat Application{% endblock %}
+
+{% block content %}
+<div class="topics-page">
+    <div class="page-header">
+        <h1>All Topics</h1>
+        <p>Browse discussions by topic</p>
+    </div>
+    <div class="topics-grid">
+        {% for topic in topics %}
+        <a href="{% url 'home' %}?topic={{ topic.name }}" class="topic-card">
+            <div class="topic-card-hash">#</div>
+            <div class="topic-card-name">{{ topic.name }}</div>
+            <div class="topic-card-count">{{ topic.count }} room{{ topic.count|pluralize }}</div>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            <p>No topics yet. Create a room to get started!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

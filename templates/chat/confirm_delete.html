@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ type|title }} — Django Real-Time Chat Application{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-card danger-card">
+        <div class="form-card-header">
+            <h2>Delete {{ type|title }}</h2>
+            <p class="danger-text">This action cannot be undone.</p>
+        </div>
+        <p class="confirm-message">Are you sure you want to delete <strong>"{{ obj }}"</strong>?</p>
+        <form method="POST" class="styled-form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="javascript:history.back()" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
